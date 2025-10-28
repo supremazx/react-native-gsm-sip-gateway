@@ -1,45 +1,14 @@
-// === Fail-safe React Native settings.gradle ===
-// RN 0.75+ : uses @react-native/gradle-plugin
-// RN <0.75 : falls back to native_modules.gradle from @react-native-community/cli-platform-android
+rootProject.name = 'TelonGatewayApp'
 
-rootProject.name = "teleexample"
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
+applyNativeModulesSettingsGradle(settings)
 
-// Uygulama modülü:
-include(":app")
+include ':app'
+includeBuild('../node_modules/@react-native/gradle-plugin')
 
-// Yol adayları (android dizininden bakıyoruz)
-def rnPlugin1 = file("$rootDir/../node_modules/@react-native/gradle-plugin")
-def rnPlugin2 = file("$rootDir/../../node_modules/@react-native/gradle-plugin") // bazı monorepo’larda lazım olabiliyor
-
-def nativeMods1 = file("$rootDir/../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
-def nativeMods2 = file("$rootDir/../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
-
-// Eğer yeni plugin mevcutsa (RN 0.75+), onu kullan:
-if (rnPlugin1.exists() || rnPlugin2.exists()) {
-  pluginManagement {
-    repositories {
-      gradlePluginPortal()
-      mavenCentral()
-      google()
-    }
-    if (rnPlugin1.exists()) {
-      includeBuild(rnPlugin1)
-    } else {
-      includeBuild(rnPlugin2)
-    }
-  }
-  plugins {
-    id "com.facebook.react.settings"
-  }
-  apply plugin: "com.facebook.react.settings"
-
-} else {
-  // Eski yol (RN < 0.75) - native_modules.gradle
-  def nativeFile = nativeMods1.exists() ? nativeMods1 : nativeMods2
-  if (nativeFile.exists()) {
-    apply from: nativeFile
-    applyNativeModulesSettingsGradle(settings)
-  } else {
-    println("WARNING: Could not locate React Native autolinking script. Checked: " + nativeMods1 + " and " + nativeMods2)
-  }
+if (settings.hasProperty("newArchEnabled") && settings.newArchEnabled == "true") {
+    include(":ReactAndroid")
+    project(":ReactAndroid").projectDir = file('../node_modules/react-native/ReactAndroid')
+    include(":ReactAndroid:hermes-engine")
+    project(":ReactAndroid:hermes-engine").projectDir = file('../node_modules/react-native/ReactAndroid/hermes-engine')
 }
