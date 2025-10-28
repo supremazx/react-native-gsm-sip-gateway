@@ -1,23 +1,23 @@
 rootProject.name = 'teleexample'
 
-// === DÜZELTME ===
-// node_modules klasörünün doğru yerini (ana dizini) göstermesi için yol ' ../../ ' olarak düzeltildi.
-apply from: new File(rootProject.projectDir, '../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle'); applyNativeModulesSettingsGradle(settings)
+// === DÜZELTME (YENİ) ===
+// React Native 0.71+ için doğru Gradle Plugin yolunu uygula
+apply from: new File(
+    rootProject.projectDir,
+    '../../node_modules/@react-native/gradle-plugin/src/main/resources/native_modules.gradle'
+)
+applyNativeModulesSettingsGradle(settings)
 // === DÜZELTME SONU ===
 
 setBinding(new Binding([gradle: this]))
 evaluate(new File(
-        // Bu yolun da ana dizine bakması gerekiyor
-        settingsDir.parentFile.parentFile,
+        settingsDir.parentFile.parentFile, // ../../
         'node_modules/@react-native/gradle-plugin/src/main/jni/CMakeLists.txt'
 ))
 
 include ':app'
 
-// === DÜZELTME ===
-// Projenizin ana dizindeki "packages" klasöründe bulunan
-// yerel bağımlılıklarının doğru yolları:
-
+// Yerel bağımlılıklar (bunlar doğruydu)
 include ':react-native-replace-dialer'
 project(':react-native-replace-dialer').projectDir = new File(rootProject.projectDir, '../../packages/react-native-replace-dialer/android')
 
