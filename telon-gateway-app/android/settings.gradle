@@ -1,7 +1,28 @@
 rootProject.name = 'teleexample'
-include ':react-native-sip2'
-project(':react-native-sip2').projectDir = new File(rootProject.projectDir, '../../../modules/react-native-sip2/android')
-include ':react-native-tele'
-project(':react-native-tele').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-tele/android/app')
-apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
+
+// === DÜZELTME ===
+// node_modules klasörünün doğru yerini (ana dizini) göstermesi için yol ' ../../ ' olarak düzeltildi.
+apply from: new File(rootProject.projectDir, '../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle'); applyNativeModulesSettingsGradle(settings)
+// === DÜZELTME SONU ===
+
+setBinding(new Binding([gradle: this]))
+evaluate(new File(
+        // Bu yolun da ana dizine bakması gerekiyor
+        settingsDir.parentFile.parentFile,
+        'node_modules/@react-native/gradle-plugin/src/main/jni/CMakeLists.txt'
+))
+
 include ':app'
+
+// === DÜZELTME ===
+// Projenizin ana dizindeki "packages" klasöründe bulunan
+// yerel bağımlılıklarının doğru yolları:
+
+include ':react-native-replace-dialer'
+project(':react-native-replace-dialer').projectDir = new File(rootProject.projectDir, '../../packages/react-native-replace-dialer/android')
+
+include ':react-native-sip2'
+project(':react-native-sip2').projectDir = new File(rootProject.projectDir, '../../packages/react-native-sip2/android')
+
+include ':react-native-tele'
+project(':react-native-tele').projectDir = new File(rootProject.projectDir, '../../packages/react-native-tele/android')
