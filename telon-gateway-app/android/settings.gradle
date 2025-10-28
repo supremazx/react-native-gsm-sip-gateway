@@ -1,28 +1,45 @@
-rootProject.name = 'teleexample'
+// === Fail-safe React Native settings.gradle ===
+// RN 0.75+ : uses @react-native/gradle-plugin
+// RN <0.75 : falls back to native_modules.gradle from @react-native-community/cli-platform-android
 
-// === DÜZELTME (YENİ) ===
-// React Native 0.71+ için doğru Gradle Plugin yolunu uygula
-apply from: new File(
-    rootProject.projectDir,
-    '../../node_modules/@react-native/gradle-plugin/src/main/resources/native_modules.gradle'
-)
-applyNativeModulesSettingsGradle(settings)
-// === DÜZELTME SONU ===
+rootProject.name = "teleexample"
 
-setBinding(new Binding([gradle: this]))
-evaluate(new File(
-        settingsDir.parentFile.parentFile, // ../../
-        'node_modules/@react-native/gradle-plugin/src/main/jni/CMakeLists.txt'
-))
+// Uygulama modülü:
+include(":app")
 
-include ':app'
+// Yol adayları (android dizininden bakıyoruz)
+def rnPlugin1 = file("$rootDir/../node_modules/@react-native/gradle-plugin")
+def rnPlugin2 = file("$rootDir/../../node_modules/@react-native/gradle-plugin") // bazı monorepo’larda lazım olabiliyor
 
-// Yerel bağımlılıklar (bunlar doğruydu)
-include ':react-native-replace-dialer'
-project(':react-native-replace-dialer').projectDir = new File(rootProject.projectDir, '../../packages/react-native-replace-dialer/android')
+def nativeMods1 = file("$rootDir/../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
+def nativeMods2 = file("$rootDir/../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
 
-include ':react-native-sip2'
-project(':react-native-sip2').projectDir = new File(rootProject.projectDir, '../../packages/react-native-sip2/android')
+// Eğer yeni plugin mevcutsa (RN 0.75+), onu kullan:
+if (rnPlugin1.exists() || rnPlugin2.exists()) {
+  pluginManagement {
+    repositories {
+      gradlePluginPortal()
+      mavenCentral()
+      google()
+    }
+    if (rnPlugin1.exists()) {
+      includeBuild(rnPlugin1)
+    } else {
+      includeBuild(rnPlugin2)
+    }
+  }
+  plugins {
+    id "com.facebook.react.settings"
+  }
+  apply plugin: "com.facebook.react.settings"
 
-include ':react-native-tele'
-project(':react-native-tele').projectDir = new File(rootProject.projectDir, '../../packages/react-native-tele/android')
+} else {
+  // Eski yol (RN < 0.75) - native_modules.gradle
+  def nativeFile = nativeMods1.exists() ? nativeMods1 : nativeMods2
+  if (nativeFile.exists()) {
+    apply from: nativeFile
+    applyNativeModulesSettingsGradle(settings)
+  } else {
+    println("WARNING: Could not locate React Native autolinking script. Checked: " + nativeMods1 + " and " + nativeMods2)
+  }
+}
